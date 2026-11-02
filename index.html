@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Classroom</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f0fa;
+    color: #302044;
+    padding: 30px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+header {
+    background: #6c3b91;
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    margin-bottom: 8px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 3px 10px #ddd;
+}
+
+.card h2 {
+    color: #713e9b;
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.section {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+}
+
+input {
+    width: 65%;
+}
+
+button {
+    background: #713e9b;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #512a73;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+th {
+    background: #eee4f7;
+}
+
+.delete {
+    background: #d9534f;
+}
+
+@media(max-width: 650px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    body {
+        padding: 12px;
+    }
+
+    input {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>🎓 Smart Classroom</h1>
+    <p>Sinfni boshqarish va o‘quvchilar faoliyatini nazorat qilish tizimi</p>
+</header>
+
+<div class="cards">
+    <div class="card">
+        <h2 id="total">0</h2>
+        <p>Jami o‘quvchilar</p>
+    </div>
+
+    <div class="card">
+        <h2 id="present">0</h2>
+        <p>Bugun qatnashganlar</p>
+    </div>
+
+    <div class="card">
+        <h2 id="absent">0</h2>
+        <p>Kelmaganlar</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>➕ O‘quvchi qo‘shish</h2>
+    <input type="text" id="studentName" placeholder="O‘quvchining ism-familiyasi">
+    <button onclick="addStudent()">Qo‘shish</button>
+</div>
+
+<div class="section">
+    <h2>📋 O‘quvchilar ro‘yxati</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Ism-familiya</th>
+                <th>Davomat</th>
+                <th>Faollik</th>
+                <th>Amal</th>
+            </tr>
+        </thead>
+        <tbody id="studentList"></tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>📊 Sinf hisoboti</h2>
+    <p id="report">Hozircha ma’lumot mavjud emas.</p>
+    <br>
+    <button onclick="showReport()">Hisobotni ko‘rish</button>
+</div>
+
+</div>
+
+<script>
+let students = JSON.parse(localStorage.getItem("students")) || [];
+
+function saveData() {
+    localStorage.setItem("students", JSON.stringify(students));
+}
+
+function addStudent() {
+    let name = document.getElementById("studentName").value.trim();
+
+    if (name === "") {
+        alert("O‘quvchi ismini kiriting!");
+        return;
+    }
+
+    students.push({
+        name: name,
+        attendance: "Kelmagan",
+        activity: "0"
+    });
+
+    document.getElementById("studentName").value = "";
+    saveData();
+    renderStudents();
+}
+
+function changeAttendance(index, value) {
+    students[index].attendance = value;
+    saveData();
+    renderStudents();
+}
+
+function changeActivity(index, value) {
+    students[index].activity = value;
+    saveData();
+    renderStudents();
+}
+
+function deleteStudent(index) {
+    students.splice(index, 1);
+    saveData();
+    renderStudents();
+}
+
+function renderStudents() {
+    let list = document.getElementById("studentList");
+    list.innerHTML = "";
+
+    students.forEach((student, index) => {
+        list.innerHTML += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td>
+                <select onchange="changeAttendance(${index}, this.value)">
+                    <option ${student.attendance === "Kelgan" ? "selected" : ""}>Kelgan</option>
+                    <option ${student.attendance === "Kelmagan" ? "selected" : ""}>Kelmagan</option>
+                </select>
+            </td>
+            <td>
+                <select onchange="changeActivity(${index}, this.value)">
+                    <option value="0" ${student.activity === "0" ? "selected" : ""}>0</option>
+                    <option value="1" ${student.activity === "1" ? "selected" : ""}>1</option>
+                    <option value="2" ${student.activity === "2" ? "selected" : ""}>2</option>
+                    <option value="3" ${student.activity === "3" ? "selected" : ""}>3</option>
+                    <option value="4" ${student.activity === "4" ? "selected" : ""}>4</option>
+                    <option value="5" ${student.activity === "5" ? "selected" : ""}>5</option>
+                </select>
+            </td>
+            <td>
+                <button class="delete" onclick="deleteStudent(${index})">O‘chirish</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("total").textContent = students.length;
+
+    document.getElementById("present").textContent =
+        students.filter(s => s.attendance === "Kelgan").length;
+
+    document.getElementById("absent").textContent =
+        students.filter(s => s.attendance === "Kelmagan").length;
+}
+
+function showReport() {
+    let total = students.length;
+    let present = students.filter(s => s.attendance === "Kelgan").length;
+    let absent = total - present;
+
+    document.getElementById("report").innerHTML =
+        `Jami o‘quvchilar: <b>${total}</b><br>
+         Qatnashganlar: <b>${present}</b><br>
+         Kelmaganlar: <b>${absent}</b>`;
+}
+
+renderStudents();
+</script>
+
+</body>
+</html>
